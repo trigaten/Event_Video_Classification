@@ -16,7 +16,9 @@ writer = SummaryWriter()
 class Model(nn.Module):
     def __init__(self, classes):
         super().__init__()
+
         self.classes = classes
+
         self.CNN = nn.Sequential(
             nn.Conv2d(1, 10, 4, stride=2),
             nn.MaxPool2d(4),
@@ -29,47 +31,44 @@ class Model(nn.Module):
         self.LSTM = nn.LSTM(2100, 1200, batch_first=True)
 
         self.Linear = nn.Sequential(
-            nn.Linear(1200, 600),
-            nn.Tanh(),
-            nn.Linear(600, self.classes),
+            nn.Linear(1200, 600, bias=False),
+            nn.Sigmoid(),
+            nn.Linear(600, self.classes, bias=False),
             nn.Sigmoid()
         )
 
     def forward(self, x):
-        # x.apply_(self.CNN)
-
+        # CNN output
         CNN_out = self.CNN(x)
-        # print("CONV")
-        # print(CNN_out.shape)
+        # flatten it
         flat = torch.flatten(CNN_out, 1)
-        # print("FLAT")
-        # print(flat.shape)
         # unsqueeze to add batch dimension
         flat = torch.unsqueeze(flat, 0)
-        # print(flat.shape)
-        lstm_out, _ = self.LSTM(flat)
-        # print("LSTM")
-        # print(lstm_out.shape)
+        # pass 0s as hidden and cell state since 
+        # this is the start of a sequence of images
+        h_n = torch.zeros(1, 1, 1200)
+        c_n = torch.zeros(1, 1, 1200)
+        # lstm output
+        lstm_out, _ = self.LSTM(flat, (h_n, c_n))
+        # linear layer output
         lin_out = self.Linear(lstm_out)
-        # print("lin_out")
-        # print(lin_out.shape)
+
         return torch.squeeze(lin_out, 0)
 
-
 if __name__ == '__main__':
-    EPOCHS = 80
+    EPOCHS = 100
+    # initialize dataset and dataloader
     dataset = EADataset('vids', do_transform=True)
+    # batch size 1 so load 1 video at a time
     dataloader = DataLoader(dataset, batch_size=1, shuffle=True)
 
+    # initialize network
     net = Model(len(dataset.actions))
 
     loss = nn.CrossEntropyLoss()
 
-    # net.load_state_dict(torch.load("model2"))
+    optimizer = optim.Adam(net.parameters(), lr=0.0001)
 
-    # net.eval()
-
-    optimizer = optim.Adam(net.parameters(), lr=0.001)
 
     video_num = 0
     for epoch in range(EPOCHS):
@@ -79,12 +78,10 @@ if __name__ == '__main__':
 
             exp = exp.squeeze(0)
             exp = exp.squeeze(0)
-
             exp = exp.repeat(400)
             out = net(video)
-            # print(out.shape)
-            loss_out = loss(out, exp)
 
+            loss_out = loss(out, exp)
 
             loss_out.backward()
 
@@ -92,24 +89,11 @@ if __name__ == '__main__':
 
             optimizer.zero_grad()
 
-            print(loss_out)
+            print(loss_out) 
 
             writer.add_scalar("Loss/train", loss_out, video_num)
-
 
             writer.flush()
             video_num+=1
 
-        torch.save(net.state_dict(), "model4")
-
- # video, _ = dataset[0]
-    # print(video.shape)
-    # # vframes = torch.unsqueeze(vframes, 0)
-    # # print(vframes.shape)
-    # image = video[53]
-   
-    # image = image.permute(1, 2, 0)
-    # print(image.shape)
-    # plt.imshow(image.byte())
-    # print("HI")
-    # plt.show()
+        torch.save(net.state_dict(), "model8")

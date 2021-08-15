@@ -10,10 +10,10 @@ from trainnow import Model
 
 model = Model(5)
 
-model.load_state_dict(torch.load("model8"))
+model.load_state_dict(torch.load("model"))
 model.eval()
 
-dataset = EADataset("ffff")
+dataset = EADataset("test")
 
 correct = 0
 for index, (video, exp) in enumerate(dataset):

@@ -12,7 +12,6 @@ import torchvision.io as IO
 import os
 from torch.utils.data import Dataset
 
-
 class EADataset(Dataset):
     def __init__(self, root_dir, do_transform=True):
         # a list containing the path of every image
@@ -26,7 +25,7 @@ class EADataset(Dataset):
         return len(self.video_paths)
 
     def __getitem__(self, idx):
-        """ """
+        """indexing method"""
         path = self.video_paths[idx]
         vframes, _, _ = IO.read_video(path)
         vframes = vframes.permute(0, 3, 1, 2)
