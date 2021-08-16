@@ -1,20 +1,16 @@
 import torch
-import torch.nn as nn
-import torch.optim as optim
-from torch.utils import data
-import matplotlib.pyplot as plt
-import torchvision.transforms as transforms
-from torchvision.transforms.transforms import Grayscale
 from EADataset import EADataset
-from trainnow import Model
+from Net import Net
 
-model = Model(5)
-
+# load model
+model = Net(5)
 model.load_state_dict(torch.load("model"))
 model.eval()
 
+# load testing dataset
 dataset = EADataset("test")
 
+# perform inferences for every sample and log model performance
 correct = 0
 for index, (video, exp) in enumerate(dataset):
     video, exp = dataset[index]

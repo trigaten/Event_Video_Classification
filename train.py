@@ -1,99 +1,83 @@
+"""
+This code trains the model
+Training procedure:
+for each epoch:
+    for each sample video in the train dataset (sampled randomly)
+        push the entire video through the neural network and get a class prediction tensor for each frame
+        apply loss function using the label of the video as the target class for every frame
+        get average loss from loss function and perform SGD
+
+This method basically treats each video as a batch of images since the loss is their average loss
+Note, however, that the prediction of each frame/image is affected by the previous images due to
+the LSTM in the model.
+"""
+
 import torch
 import torch.nn as nn
-from torch.nn.modules.activation import Tanh
-from torch.nn.modules.activation import Sigmoid
 import torch.optim as optim
-from torch.utils import data
-import torchvision  # .io.read_video as read_video
-import matplotlib.pyplot as plt
-import torchvision.transforms as transforms
-from torchvision.transforms.transforms import Grayscale
 from EADataset import EADataset
 from torch.utils.data import DataLoader
+from Net import Net
 from torch.utils.tensorboard import SummaryWriter
+
+# log values to tensorboard during training
 writer = SummaryWriter()
 
-class Model(nn.Module):
-    def __init__(self, classes):
-        super().__init__()
-
-        self.classes = classes
-
-        self.CNN = nn.Sequential(
-            nn.Conv2d(1, 10, 4, stride=2),
-            nn.MaxPool2d(4),
-            nn.Conv2d(10, 20, 3),
-            nn.MaxPool2d(3),
-            nn.Conv2d(20, 30, 2),
-            nn.MaxPool2d(2),
-        )
-
-        self.LSTM = nn.LSTM(2100, 1200, batch_first=True)
-
-        self.Linear = nn.Sequential(
-            nn.Linear(1200, 600, bias=False),
-            nn.Sigmoid(),
-            nn.Linear(600, self.classes, bias=False),
-            nn.Sigmoid()
-        )
-
-    def forward(self, x):
-        # CNN output
-        CNN_out = self.CNN(x)
-        # flatten it
-        flat = torch.flatten(CNN_out, 1)
-        # unsqueeze to add batch dimension
-        flat = torch.unsqueeze(flat, 0)
-        # pass 0s as hidden and cell state since 
-        # this is the start of a sequence of images
-        h_n = torch.zeros(1, 1, 1200)
-        c_n = torch.zeros(1, 1, 1200)
-        # lstm output
-        lstm_out, _ = self.LSTM(flat, (h_n, c_n))
-        # linear layer output
-        lin_out = self.Linear(lstm_out)
-
-        return torch.squeeze(lin_out, 0)
-
 if __name__ == '__main__':
+    # convergence seems to occur around 60 epochs
     EPOCHS = 100
     # initialize dataset and dataloader
-    dataset = EADataset('vids', do_transform=True)
+    dataset = EADataset('vids', do_greyscale=True, do_slice=True)
     # batch size 1 so load 1 video at a time
     dataloader = DataLoader(dataset, batch_size=1, shuffle=True)
 
     # initialize network
-    net = Model(len(dataset.actions))
+    net = Net(len(dataset.actions))
 
+    # initialize loss function and optimizer
     loss = nn.CrossEntropyLoss()
-
     optimizer = optim.Adam(net.parameters(), lr=0.0001)
 
-
+    # keep track of number of videos that have been trained on
     video_num = 0
+
     for epoch in range(EPOCHS):
         for index, sample in enumerate(dataloader):
+            # exp is expected class
             video, exp = sample
+            # remove first dim from video
             video = video.squeeze(0)
+            
+            # remove first 2 dims from exp
+            exp = exp.squeeze(0)
+            exp = exp.squeeze(0)
+            # make exp into a 1d tensor which contains len(video) copies of exp
+            # this is necessary for the loss function which accepts all the video frame
+            # output tensors and expects a ground truth value for each frame
+            exp = exp.repeat(len(video))
 
-            exp = exp.squeeze(0)
-            exp = exp.squeeze(0)
-            exp = exp.repeat(400)
+            # push video through neural net
             out = net(video)
 
+            # compute loss
             loss_out = loss(out, exp)
 
+            # accumulate gradients
             loss_out.backward()
 
+            # perform SGD
             optimizer.step()
 
+            # clear grads
             optimizer.zero_grad()
 
             print(loss_out) 
 
+            # log loss
             writer.add_scalar("Loss/train", loss_out, video_num)
 
             writer.flush()
             video_num+=1
 
+        # save model every epoch
         torch.save(net.state_dict(), "model8")

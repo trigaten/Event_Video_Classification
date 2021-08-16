@@ -13,11 +13,12 @@ import os
 from torch.utils.data import Dataset
 
 class EADataset(Dataset):
-    def __init__(self, root_dir, do_transform=True):
+    def __init__(self, root_dir, do_greyscale=True, do_slice=False):
         # a list containing the path of every image
         self.video_paths = self.get_video_paths(root_dir)
         self.root_dir = root_dir
-        self.do_transform = do_transform
+        self.do_greyscale = do_greyscale
+        self.do_slice = do_slice
         self.grayscale = transforms.Grayscale(num_output_channels=1)
         self.actions = ['walk_facing_forward_N_S', 'walk_facing_sideways_W_E', 'walk_in_place_N', 'walk_pivot_NE_SW', 'walk_pivot_NW_SE']
     
@@ -30,14 +31,24 @@ class EADataset(Dataset):
         vframes, _, _ = IO.read_video(path)
         vframes = vframes.permute(0, 3, 1, 2)
 
-        if self.do_transform:
-            vframes = self.transform(vframes)
+        if self.do_greyscale:
+            vframes = self.grayscale(vframes)
+
+        if self.do_slice:
+            vframes = self.half(vframes)
 
         index = self.actions.index(self.path_crop(path))
         return vframes.float(), torch.LongTensor([index])
 
-    def transform(self, vframes):
-        return self.grayscale(vframes)
+    def half(self, vframes):
+        if random.random() > 0.5:
+            indices = torch.arange(0, len(vframes), 2)
+            
+            if random.random() > 0.5:
+                indices+=1
+
+            return torch.index_select(vframes, 0, indices)
+        return vframes
 
     def path_crop(self, path):
         return path[10:-24]
