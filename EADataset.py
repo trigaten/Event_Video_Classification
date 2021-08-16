@@ -28,6 +28,7 @@ class EADataset(Dataset):
     def __getitem__(self, idx):
         """indexing method"""
         path = self.video_paths[idx]
+        print(path)
         vframes, _, _ = IO.read_video(path)
         vframes = vframes.permute(0, 3, 1, 2)
 
