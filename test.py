@@ -3,12 +3,12 @@ from EADataset import EADataset
 from Net import Net
 
 # load model
-model = Net(5)
-model.load_state_dict(torch.load("model8"))
+model = Net(5, "cpu")
+model.load_state_dict(torch.load("dropout+no_slice_model"))
 model.eval()
 
 # load testing dataset
-dataset = EADataset("vids")
+dataset = EADataset("test", device="cpu")
 
 # perform inferences for every sample and log model performance
 correct = 0

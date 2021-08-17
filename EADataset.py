@@ -13,7 +13,8 @@ import os
 from torch.utils.data import Dataset
 
 class EADataset(Dataset):
-    def __init__(self, root_dir, do_greyscale=True, do_slice=False):
+    def __init__(self, root_dir, device, do_greyscale=True, do_slice=False):
+        self.device = device
         # a list containing the path of every image
         self.video_paths = self.get_video_paths(root_dir)
         self.root_dir = root_dir
@@ -28,8 +29,8 @@ class EADataset(Dataset):
     def __getitem__(self, idx):
         """indexing method"""
         path = self.video_paths[idx]
-        print(path)
         vframes, _, _ = IO.read_video(path)
+        vframes = vframes.to(self.device)
         vframes = vframes.permute(0, 3, 1, 2)
 
         if self.do_greyscale:
@@ -38,12 +39,13 @@ class EADataset(Dataset):
         if self.do_slice:
             vframes = self.half(vframes)
 
-        index = self.actions.index(self.path_crop(path))
-        return vframes.float(), torch.LongTensor([index])
+        index = torch.tensor(self.actions.index(self.path_crop(path)), device=self.device)
+
+        return vframes.float(), index.long()
 
     def half(self, vframes):
         if random.random() > 0.5:
-            indices = torch.arange(0, len(vframes), 2)
+            indices = torch.arange(0, len(vframes), 2, device=self.device)
             
             if random.random() > 0.5:
                 indices+=1
@@ -52,7 +54,7 @@ class EADataset(Dataset):
         return vframes
 
     def path_crop(self, path):
-        return path[10:-24]
+        return path[6+len(self.root_dir):-24]
 
     def get_video_paths(self, dir):
         video_paths = []
@@ -61,3 +63,6 @@ class EADataset(Dataset):
             video_paths.append(video_path)
         return video_paths
 
+if __name__ == '__main__':
+    dataset = EADataset("train", 'cuda')
+    print(len(dataset))

@@ -1,5 +1,6 @@
 """
 This code trains the model
+
 Training procedure:
 for each epoch:
     for each sample video in the train dataset (sampled randomly)
@@ -24,19 +25,21 @@ from torch.utils.tensorboard import SummaryWriter
 writer = SummaryWriter()
 
 if __name__ == '__main__':
+    device = 'cuda' if torch.cuda.is_available() else 'cpu'
+
     # convergence seems to occur around 60 epochs
     EPOCHS = 100
     # initialize dataset and dataloader
-    dataset = EADataset('vids', do_greyscale=True, do_slice=True)
+    dataset = EADataset('train',  device=device, do_greyscale=True, do_slice=False)
     # batch size 1 so load 1 video at a time
     dataloader = DataLoader(dataset, batch_size=1, shuffle=True)
 
     # initialize network
-    net = Net(len(dataset.actions))
+    net = Net(len(dataset.actions), device=device).to(device)
 
     # initialize loss function and optimizer
     loss = nn.CrossEntropyLoss()
-    optimizer = optim.Adam(net.parameters(), lr=0.0001)
+    optimizer = optim.Adam(net.parameters(), lr=10e-4)
 
     # keep track of number of videos that have been trained on
     video_num = 0
@@ -51,6 +54,7 @@ if __name__ == '__main__':
             # remove first 2 dims from exp
             exp = exp.squeeze(0)
             exp = exp.squeeze(0)
+
             # make exp into a 1d tensor which contains len(video) copies of exp
             # this is necessary for the loss function which accepts all the video frame
             # output tensors and expects a ground truth value for each frame
@@ -62,6 +66,8 @@ if __name__ == '__main__':
             # compute loss
             loss_out = loss(out, exp)
 
+            print(loss_out)
+
             # accumulate gradients
             loss_out.backward()
 
@@ -71,8 +77,6 @@ if __name__ == '__main__':
             # clear grads
             optimizer.zero_grad()
 
-            print(loss_out) 
-
             # log loss
             writer.add_scalar("Loss/train", loss_out, video_num)
 
@@ -80,4 +84,4 @@ if __name__ == '__main__':
             video_num+=1
 
         # save model every epoch
-        torch.save(net.state_dict(), "model8")
+        torch.save(net.state_dict(), "dropout+no_slice_model")

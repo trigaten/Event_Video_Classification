@@ -1,14 +1,14 @@
 import torch
 import torch.nn as nn
-from torch.nn.modules.activation import Sigmoid
 
 class Net(nn.Module):
     
-    def __init__(self, classes):
+    def __init__(self, classes, device):
         """accepts parameter for # of classes"""
         super().__init__()
 
         self.classes = classes
+        self.device = device
 
         self.CNN = nn.Sequential(
             nn.Conv2d(1, 10, 4, stride=2),
@@ -39,8 +39,8 @@ class Net(nn.Module):
         flat = torch.unsqueeze(flat, 0)
         # pass 0s as hidden and cell state since 
         # this is the start of a sequence of images
-        h_n = torch.zeros(1, 1, 1200)
-        c_n = torch.zeros(1, 1, 1200)
+        h_n = torch.zeros(1, 1, 1200, device=self.device)
+        c_n = torch.zeros(1, 1, 1200, device=self.device)
         # lstm output
         lstm_out, _ = self.LSTM(flat, (h_n, c_n))
         # linear layer output
