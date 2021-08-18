@@ -4,7 +4,7 @@ from Net import Net
 
 # load model
 model = Net(5, "cpu")
-model.load_state_dict(torch.load("dropout+no_slice_model"))
+model.load_state_dict(torch.load("nodropout"))
 model.eval()
 
 # load testing dataset

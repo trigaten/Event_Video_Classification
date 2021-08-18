@@ -13,10 +13,14 @@ import os
 from torch.utils.data import Dataset
 
 class EADataset(Dataset):
-    def __init__(self, root_dir, device, do_greyscale=True, do_slice=False):
+    def __init__(self, root_dir, device, video_paths = None, do_greyscale=True, do_slice=False):
         self.device = device
         # a list containing the path of every image
-        self.video_paths = self.get_video_paths(root_dir)
+        if video_paths is None:
+            self.video_paths = self.get_video_paths(root_dir)
+        else:
+            self.video_paths = video_paths
+
         self.root_dir = root_dir
         self.do_greyscale = do_greyscale
         self.do_slice = do_slice

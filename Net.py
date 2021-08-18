@@ -23,9 +23,9 @@ class Net(nn.Module):
 
         self.Linear = nn.Sequential(
             nn.Linear(1200, 600, bias=False),
-            nn.Dropout(0.5),
+            # nn.Dropout(0.5),
             nn.Sigmoid(),
-            nn.Dropout(0.2),
+            # nn.Dropout(0.2),
             nn.Linear(600, self.classes, bias=False),
             nn.Sigmoid()
         )
