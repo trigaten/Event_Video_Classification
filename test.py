@@ -8,12 +8,14 @@ model.load_state_dict(torch.load("nodropout"))
 model.eval()
 
 # load testing dataset
-dataset = EADataset("test", device="cpu")
+dataset = EADataset("output_video_files", device="cpu")
 
 # perform inferences for every sample and log model performance
 correct = 0
 for index, (video, exp) in enumerate(dataset):
     exp = exp.item()
+    print(video.shape)
+    # exit()
     out = model(video)
     # get prediction for last frame of video
     last = out[len(out)-1]

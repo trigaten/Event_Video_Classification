@@ -47,7 +47,7 @@ for index in range(len(global_dataset)):
     _, exp = global_dataset[index]
     correct = torch.argmax(last).item() == exp.item()
     cs_acc.append(correct)
-    
+
     writer.add_scalar("CV loss", loss, index)
     writer.add_scalar("CV pred", torch.argmax(last).item(), index)
     writer.add_scalar("CV acc", correct, index)
@@ -60,3 +60,6 @@ print(mean(cs_losses))
 print(mean(cs_acc))
 
 
+# [0, 1, 2, 3, 4, 0, 1, 2, 3, 4, 0, 1, 2, 3, 4, 0, 1, 2, 3, 4, 0, 1, 2, 3, 4, 0, 1, 2, 3, 4, 0, 1, 2, 3, 4, 0, 1, 0, 3, 4, 0, 1, 2, 3, 4, 0, 1, 2, 3, 4, 0, 1]
+# 0.937792854813429
+# 0.9807692307692307

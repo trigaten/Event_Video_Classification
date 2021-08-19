@@ -12,6 +12,7 @@ import torchvision.io as IO
 import os
 from torch.utils.data import Dataset
 
+
 class EADataset(Dataset):
     def __init__(self, root_dir, device, video_paths = None, do_greyscale=True, do_slice=False):
         self.device = device
@@ -36,6 +37,8 @@ class EADataset(Dataset):
         vframes, _, _ = IO.read_video(path)
         vframes = vframes.to(self.device)
         vframes = vframes.permute(0, 3, 1, 2)
+
+        vframes = TF.resize(vframes, [420, 560])
 
         if self.do_greyscale:
             vframes = self.grayscale(vframes)
@@ -68,5 +71,6 @@ class EADataset(Dataset):
         return video_paths
 
 if __name__ == '__main__':
-    dataset = EADataset("train", 'cuda')
-    print(len(dataset))
+    dataset = EADataset("train", 'cpu')
+    v, _ = dataset[37]
+    print(v.shape)
