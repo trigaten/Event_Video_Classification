@@ -8,7 +8,7 @@ CNN+LSTM based event video classification. The event videos contain frames from 
 
 Currently very small dataset
 
-98% accuracy with LOO cross validatioon
+98% accuracy with LOO cross validation
 
 90% accuracy with regular train test configuration, using 10 samples in test set
 
