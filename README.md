@@ -12,4 +12,4 @@ Currently very small dataset
 
 90% accuracy with regular train test configuration, using 10 samples in test set
 
-40% accuracy on small set (5) of videos extremely out of train distribution (shot on different camera/light conditions/frame size/quantity of action frames)
+40% accuracy on small set (5 samples) of videos extremely out of train distribution (shot on different camera/light conditions/frame size/quantity of action frames)
