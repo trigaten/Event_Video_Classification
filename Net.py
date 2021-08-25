@@ -11,7 +11,7 @@ class Net(nn.Module):
         self.device = device
 
         self.CNN = nn.Sequential(
-            nn.Conv2d(1, 10, 4, stride=2),
+            nn.Conv2d(2, 10, 4, stride=2),
             nn.MaxPool2d(4),
             nn.Conv2d(10, 20, 3),
             nn.MaxPool2d(3),

@@ -4,11 +4,11 @@ from Net import Net
 
 # load model
 model = Net(5, "cpu")
-model.load_state_dict(torch.load("nodropout"))
+model.load_state_dict(torch.load("MODEL", map_location=torch.device('cpu')))
 model.eval()
 
 # load testing dataset
-dataset = EADataset("output_video_files", device="cpu")
+dataset = EADataset("test", device="cpu")
 
 # perform inferences for every sample and log model performance
 correct = 0

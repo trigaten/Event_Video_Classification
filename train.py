@@ -16,6 +16,9 @@ the LSTM in the model.
 import torch
 import torch.nn as nn
 import torch.optim as optim
+import torchvision.io as IO
+
+NO_LOSS_FRAMES = 20
 
 def train(dataloader, net, epochs, writer=None, model_save_path=None, loss_log_path="Loss"):
 
@@ -40,11 +43,10 @@ def train(dataloader, net, epochs, writer=None, model_save_path=None, loss_log_p
             # make exp into a 1d tensor which contains len(video) copies of exp
             # this is necessary for the loss function which accepts all the video frame
             # output tensors and expects a ground truth value for each frame
-            exp = exp.repeat(len(video))
+            exp = exp.repeat(len(video)-NO_LOSS_FRAMES)
 
             # push video through neural net
-            out = net(video)
-
+            out = net(video)[NO_LOSS_FRAMES:]
             # compute loss
             loss_out = loss(out, exp)
 
@@ -61,10 +63,22 @@ def train(dataloader, net, epochs, writer=None, model_save_path=None, loss_log_p
 
             # log loss
             writer.add_scalar(loss_log_path, loss_out, video_num)
+            
+            if loss_out > 1.7 and epoch > 1:
+                v = video.permute(0, 2, 3, 1).detach().cpu()
+                r = torch.zeros([v.shape[0], v.shape[1], v.shape[2], 1])
+                v = torch.cat((r, v), 3)       
+                print(video.shape)
+                print(exp[0])
 
+                IO.write_video("savids/video" + str(epoch) + "_" + str(index) + ".avi", v.numpy(), 30.0)
+            
             writer.flush()
             video_num+=1
 
-        # save model every epoch
-        if model_save_path:
+        # save model every 10 epochs
+        if model_save_path and epoch % 10 == 0:
+            torch.save(net.state_dict(), model_save_path)
+    # save after all training done
+    if model_save_path:
             torch.save(net.state_dict(), model_save_path)
