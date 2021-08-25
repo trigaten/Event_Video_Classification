@@ -1,6 +1,15 @@
 # Event_Video_Classification
 
-CNN+LSTM based event video classification. The event videos contain frames from an event based camera.
+CNN+LSTM based event video classification with Pytorch.
+
+## 1. Data
+The dataset consists of data collected with an event camera then synthezised into rgb images. Only the r and g channels contain data, since they represent the positive and negative changes in pixel brightness. When videos are loaded in as tensors, the r channel is removed. Contact jsengup1@jhu.edu for data. 
+
+## 2. Training
+### Setup
+In order to train/test the model, the data must be separated into a train/ and test/ folder. I have trained the model using a 54-10 split.
+### Train the model
+Run `python main.py` to train the model. This will save the model every 10 epochs and log loss to tensorboard. Check within `main.py` to change the output paths.
 
 ### runs contains tensorboard loss data collected during the training procedure
 
