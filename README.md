@@ -4,7 +4,7 @@ CNN+LSTM based event video classification with Pytorch.
 
 ## 1. Data
 ### General
-The dataset consists of data collected with an event camera then synthezised into rgb images. Only the b and g channels contain data, since they represent the positive and negative changes in pixel brightness. When videos are loaded in as tensors, the r channel is removed. Contact jsengup1@jhu.edu for data. 
+The dataset consists of data collected with an event camera then synthezised into rgb images. Only the b and g channels contain data, since they represent the positive and negative changes in pixel brightness over the time period in which events were aggregated into image frames. When videos are loaded in as tensors, the r channel is removed. Contact jsengup1@jhu.edu for data. 
 ### Stats
 The dataset consists of 64 videos, each 400 frames long, and recorded in two different locations with static backgrounds. They are approximately evenly distributed across 5 classes: ['walk_facing_forward_N_S', 'walk_facing_sideways_W_E', 'walk_in_place_N', 'walk_pivot_NE_SW', 'walk_pivot_NW_SE']
 
