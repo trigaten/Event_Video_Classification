@@ -8,7 +8,7 @@ from statistics import mean
 import torch
 
 # log values to tensorboard during training
-writer = SummaryWriter("LOOcross_val")
+writer = SummaryWriter("LOOcross_val_new")
 root_dir = "train"
 # models generally converge at 60 epochs
 EPOCHS = 60
