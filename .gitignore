@@ -4,3 +4,5 @@ test
 train
 savids
 __pycache__
+event_vids
+model_vids
