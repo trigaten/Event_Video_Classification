@@ -11,6 +11,7 @@ import torchvision.transforms.functional as TF
 import torchvision.io as IO
 import os
 from torch.utils.data import Dataset
+import gc
 
 class EADataset(Dataset):
     def __init__(self, root_dir, device, video_paths = None, do_slice=False, do_common=False):
@@ -35,10 +36,12 @@ class EADataset(Dataset):
     def __getitem__(self, idx):
         """indexing method"""
         path = self.video_paths[idx]
+
         vframes, _, _ = IO.read_video(path)
+
         # remove r channel: only g and b channels contain info
         vframes = torch.narrow(vframes, 3, 1, 2)
-
+    
         vframes = vframes.to(self.device)
 
         # changes tensor to (frames, channels, height, width)
@@ -81,14 +84,16 @@ class EADataset(Dataset):
                 vframes, action = self.hor_flip(vframes), 'walk_pivot_NE_SW'
 
 
-        # this section randomly reverses the video if makes sense to
+        # randomly reverse the video if it makes sense to
         if random.random() > 0.5 and action != 'walk_pivot_NE_SW' and action != 'walk_pivot_NW_SE':
             vframes = torch.flip(vframes, ([0]))
-
+            
+        # gc.collect()
         # randomly change perspective
         if random.random() > 0.5:
             vframes = self.rand_persp(vframes)
 
+        # randomly shrinks the image, and pads with 0s
         if random.random() > 0.5:
             h = vframes.shape[2]
             new_h = random.randint(int(h/3), h)
@@ -107,7 +112,7 @@ class EADataset(Dataset):
     def half(self, vframes):
         """with 50% probability, removes every other frame in a video. Randomly removes even or odd indexed frames"""
         if random.random() > 0.5:
-            indices = torch.arange(0, len(vframes), 2, device=self.device)
+            indices = torch.arange(0, len(vframes)-1, 2, device=self.device)
             
             if random.random() > 0.5:
                 indices+=1
@@ -129,11 +134,12 @@ class EADataset(Dataset):
 
 if __name__ == '__main__':
     dataset = EADataset("train", 'cpu', do_slice=True, do_common=True)
-    v, a = dataset[4]
+    v, a = dataset[57]
     print(a)
     print(v.shape)
-    v = v.permute(0, 2, 3, 1)
-    r = torch.zeros([v.shape[0], v.shape[1], v.shape[2], 1])
-    v = torch.cat((r, v), 3)      
-    print(v.shape)  
-    IO.write_video("video.avi", v.cpu().detach().numpy(), 30.0)
+    print(torch.cuda.is_available())
+    # v = v.permute(0, 2, 3, 1)
+    # r = torch.zeros([v.shape[0], v.shape[1], v.shape[2], 1])
+    # v = torch.cat((r, v), 3)      
+    # print(v.shape)  
+    # IO.write_video("video.avi", v.cpu().detach().numpy(), 30.0)

@@ -20,14 +20,17 @@ from Net import Net
 from torch.utils.tensorboard import SummaryWriter
 from train import train
 
+
+train_name = "train_on_64"
+
 # log values to tensorboard during training
-writer = SummaryWriter("tensorboard_data/MODEL")
+writer = SummaryWriter("tensorboard_data/" + str(train_name))
 
 if __name__ == '__main__':
     device = 'cuda' if torch.cuda.is_available() else 'cpu'
 
-    # convergence seems to occur around 60 epochs
-    EPOCHS = 100
+    # convergence seems to occur around 60 epochs with no transforms, 200 better for all transforms
+    EPOCHS = 200
     # initialize dataset and dataloader
     dataset = EADataset('train', device=device, do_slice=True, do_common=True)
     # batch size 1 so load 1 video at a time
@@ -36,5 +39,5 @@ if __name__ == '__main__':
     # initialize network
     net = Net(len(dataset.actions), device=device).to(device)
 
-    train(dataloader, net, epochs=EPOCHS, writer=writer, model_save_path="MODEL")
+    train(dataloader, net, epochs=EPOCHS, writer=writer, model_save_path=train_name)
    

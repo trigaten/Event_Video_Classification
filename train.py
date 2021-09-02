@@ -5,8 +5,10 @@ Training procedure:
 for each epoch:
     for each sample video in the train dataset (sampled randomly)
         push the entire video through the neural network and get a class prediction tensor for each frame
-        apply loss function using the label of the video as the target class for every frame
-        get average loss from loss function and perform SGD
+        apply loss function using the label of the video as the target class for (almost) every frame 
+        get average loss from loss function and perform SGD. The first 20 frames are left out of the
+        loss calculation since the network does not neccesarily have enough data to make a decision
+        before this point.
 
 This method basically treats each video as a batch of images since the loss is their average loss
 Note, however, that the prediction of each frame/image is affected by the previous images due to
@@ -63,22 +65,26 @@ def train(dataloader, net, epochs, writer=None, model_save_path=None, loss_log_p
 
             # log loss
             writer.add_scalar(loss_log_path, loss_out, video_num)
+            writer.add_scalar("epoch", epoch, epoch)
+            writer.add_scalar("label", exp[0].item(), video_num)
             
-            if loss_out > 1.7 and epoch > 1:
-                v = video.permute(0, 2, 3, 1).detach().cpu()
-                r = torch.zeros([v.shape[0], v.shape[1], v.shape[2], 1])
-                v = torch.cat((r, v), 3)       
-                print(video.shape)
-                print(exp[0])
+            # if loss_out > 1.7 and epoch > 1:
+            #     v = video.permute(0, 2, 3, 1).detach().cpu()
+            #     r = torch.zeros([v.shape[0], v.shape[1], v.shape[2], 1])
+            #     v = torch.cat((r, v), 3)       
+            #     print(video.shape)
+            #     print(exp[0])
 
-                IO.write_video("savids/video" + str(epoch) + "_" + str(index) + ".avi", v.numpy(), 30.0)
+            #     IO.write_video("savids/video" + str(epoch) + "_" + str(index) + ".avi", v.numpy(), 30.0)
             
             writer.flush()
             video_num+=1
 
         # save model every 10 epochs
+        print("Saving")
         if model_save_path and epoch % 10 == 0:
             torch.save(net.state_dict(), model_save_path)
+
     # save after all training done
     if model_save_path:
             torch.save(net.state_dict(), model_save_path)
