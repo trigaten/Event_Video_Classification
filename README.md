@@ -10,7 +10,7 @@ The dataset consists of data collected with an event camera then synthezised int
 The dataset consists of 64 videos, each 400 frames long, and recorded in two different locations with static backgrounds. They are approximately evenly distributed across 5 classes: ['walk_facing_forward_N_S', 'walk_facing_sideways_W_E', 'walk_in_place_N', 'walk_pivot_NE_SW', 'walk_pivot_NW_SE']
 
 ### Other
-There is an additional dataset of 15 videos, created in a similar fashion, but in a different location. This dataset contains 2 sets of videos, one created by the event camera software () and the other synthesized by Jonah Sengupta. This dataset is used for testing.
+There is an additional dataset of 15 videos, created in a similar fashion, but in a different location. This dataset contains 2 sets of videos, one created by the event camera software (event_vids) and the other synthesized by Jonah Sengupta (model_vids). This dataset is used for testing.
 
 ## 2. Model
 The model can be found in `Net.py`

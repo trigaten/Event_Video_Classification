@@ -11,7 +11,6 @@ import torchvision.transforms.functional as TF
 import torchvision.io as IO
 import os
 from torch.utils.data import Dataset
-import gc
 
 class EADataset(Dataset):
     def __init__(self, root_dir, device, video_paths = None, do_slice=False, do_common=False):
@@ -39,10 +38,12 @@ class EADataset(Dataset):
 
         vframes, _, _ = IO.read_video(path)
 
+        vframes = vframes.to("cpu")
+
         # remove r channel: only g and b channels contain info
         vframes = torch.narrow(vframes, 3, 1, 2)
     
-        vframes = vframes.to(self.device)
+        # vframes = vframes.to(self.device)
 
         # changes tensor to (frames, channels, height, width)
         vframes = vframes.permute(0, 3, 1, 2)
@@ -60,8 +61,7 @@ class EADataset(Dataset):
 
         index = torch.tensor(self.actions.index(action), device=self.device)
 
-        return vframes.float(), index.long()
-
+        return vframes.to(self.device).float(), index.long()
 
     def common_transform(self, vframes, action):
         """Applies a series of common transforms to the video frame. The action may
@@ -83,12 +83,10 @@ class EADataset(Dataset):
             if random.random() > 0.5:
                 vframes, action = self.hor_flip(vframes), 'walk_pivot_NE_SW'
 
-
         # randomly reverse the video if it makes sense to
         if random.random() > 0.5 and action != 'walk_pivot_NE_SW' and action != 'walk_pivot_NW_SE':
             vframes = torch.flip(vframes, ([0]))
             
-        # gc.collect()
         # randomly change perspective
         if random.random() > 0.5:
             vframes = self.rand_persp(vframes)
@@ -96,9 +94,9 @@ class EADataset(Dataset):
         # randomly shrinks the image, and pads with 0s
         if random.random() > 0.5:
             h = vframes.shape[2]
-            new_h = random.randint(int(h/3), h)
+            new_h = random.randint(int(h/2), h)
             w = vframes.shape[3]
-            new_w = random.randint(int(w/3), w)
+            new_w = random.randint(int(w/2), w)
 
             vframes = TF.resize(vframes, (new_h, new_w))
 
@@ -112,7 +110,7 @@ class EADataset(Dataset):
     def half(self, vframes):
         """with 50% probability, removes every other frame in a video. Randomly removes even or odd indexed frames"""
         if random.random() > 0.5:
-            indices = torch.arange(0, len(vframes)-1, 2, device=self.device)
+            indices = torch.arange(0, len(vframes)-1, 2, device='cpu')
             
             if random.random() > 0.5:
                 indices+=1
@@ -122,7 +120,10 @@ class EADataset(Dataset):
 
     def path_crop(self, path):
         """Base on CC_#_action naming convention (character, character _ single digit _ ...) of videos, isolates the name of the action"""
-        return path[6+len(self.root_dir):-24]
+        head_tail = os.path.split(path)
+
+
+        return head_tail[1][5:-24]
 
     def get_video_paths(self, dir):
         """reads through train directory and creates a list containing the paths of all of the videos"""

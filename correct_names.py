@@ -1,3 +1,4 @@
+"""script to correct the file names of part of the dataset"""
 import sys
 import os
 import re

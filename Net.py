@@ -19,14 +19,14 @@ class Net(nn.Module):
             nn.MaxPool2d(2),
         )
 
-        self.LSTM = nn.LSTM(2100, 1200, batch_first=True)
+        self.GRU = nn.GRU(2100, 1200, batch_first=True)
 
         self.Linear = nn.Sequential(
             nn.Linear(1200, 600, bias=False),
-            # nn.Dropout(0.5),
+            nn.Dropout(0.5),
             nn.Sigmoid(),
-            # nn.Dropout(0.2),
             nn.Linear(600, self.classes, bias=False),
+            nn.Dropout(0.2),
             nn.Sigmoid()
         )
 
@@ -40,10 +40,9 @@ class Net(nn.Module):
         # pass 0s as hidden and cell state since 
         # this is the start of a sequence of images
         h_n = torch.zeros(1, 1, 1200, device=self.device)
-        c_n = torch.zeros(1, 1, 1200, device=self.device)
+        # c_n = torch.zeros(1, 1, 1200, device=self.device)
         # lstm output
-        lstm_out, _ = self.LSTM(flat, (h_n, c_n))
+        lstm_out, _ = self.GRU(flat, h_n)
         # linear layer output
         lin_out = self.Linear(lstm_out)
-
         return torch.squeeze(lin_out, 0)

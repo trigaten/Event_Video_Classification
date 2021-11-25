@@ -6,12 +6,13 @@ from torch.nn import CrossEntropyLoss
 from torch.utils.tensorboard import SummaryWriter
 from statistics import mean 
 import torch
+import gc
 
 # log values to tensorboard during training
 writer = SummaryWriter("LOOcross_val_new")
 root_dir = "train"
 # models generally converge at 60 epochs
-EPOCHS = 60
+EPOCHS = 20
 loss_func = CrossEntropyLoss()
 global_dataset = EADataset(root_dir, 'cuda')
 device = 'cuda'
@@ -22,35 +23,44 @@ cs_acc = []
 
 
 for index in range(len(global_dataset)):
+    print(index)
     paths = global_dataset.video_paths.copy()
     paths.pop(index)
-    dataset = EADataset(root_dir, device, video_paths=paths, do_slice=True)
+    dataset = EADataset(root_dir, device, video_paths=paths, do_slice=True, do_common=True)
 
     dataloader = DataLoader(dataset, batch_size=1, shuffle=True)
 
     net = Net(len(dataset.actions), device=device).to(device)
+    # print(torch.cuda.memory_summary(abbreviated=True))
 
-    train(dataloader, net, EPOCHS, writer=writer, loss_log_path="Loss: " + str(index))
+    train(dataloader, net, EPOCHS, writer=writer, loss_log_path="Loss: " + str(index), log_mem_path=str(index))
 
-    one_left_out, label = global_dataset[index]
+    with torch.no_grad():
+        one_left_out, label = global_dataset[index]
 
-    logits = net(one_left_out)
-    
-    last = logits[len(logits)-1]
-    last = last.unsqueeze(0)
-    label = label.unsqueeze(0)
-    
-    loss = loss_func(last, label)
-    cs_losses.append(loss.item())
-    cs_preds.append(torch.argmax(last).item())
+        logits = net(one_left_out)
+        
+        last = logits[len(logits)-1]
+        last = last.unsqueeze(0)
+        
+        loss = loss_func(last, label.unsqueeze(0))
+        cs_losses.append(loss.detach().item())
+        cs_preds.append(torch.argmax(last.detach()).item())
 
-    _, exp = global_dataset[index]
-    correct = torch.argmax(last).item() == exp.item()
-    cs_acc.append(correct)
+        correct = torch.argmax(last).item() == label.item()
 
-    writer.add_scalar("CV loss", loss, index)
-    writer.add_scalar("CV pred", torch.argmax(last).item(), index)
-    writer.add_scalar("CV acc", correct, index)
+        cs_acc.append(correct)
+
+        writer.add_scalar("CV loss", loss.detach().item(), index)
+        writer.add_scalar("CV pred", torch.argmax(last).detach().item(), index)
+        writer.add_scalar("CV acc", correct, index)
+
+        # del dataloader
+        # del net
+        # del logits
+        # gc.collect()
+        # torch.cuda.empty_cache()
+
 
     
     # print("HERE")

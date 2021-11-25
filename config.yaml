@@ -1,0 +1,122 @@
+- name: 50vids
+  data_aug:
+    - slice: True
+    - common: True
+  train:
+    - train: first 50
+  epochs: 10
+  test:
+    - train: last 14
+
+# 1. train on the 64 dataset videos, and then test on the 15 event videos, extract accuracy, then test on the 15 model videos and extract accuracy. 
+
+- name: 64vids
+  data_aug:
+    - slice: True
+    - common: True
+  train:
+    - train: first 64
+  epochs: 12
+  test:
+    - model_videos: first 15
+
+# 2. Train on 64 videos + 10 event videos (2 people all actions) and test on last person and all 15 model videos 
+- name: 64vids+10event
+  data_aug:
+    - slice: True
+    - common: True
+  train:
+    - train: first 64
+    - event_camera_videos: first 10
+  epochs: 16
+  test:
+    - event_camera_videos: last 5
+    - model_videos: first 15
+
+# 3. Train on 64 videos + 10 model videos and test on last person and all 15 event videos. 
+- name: 64vids+10model
+  data_aug:
+    - slice: True
+    - common: True
+  train:
+    - train: first 64
+    - model_videos: first 10
+  epochs: 18
+  test:
+    - model_videos: last 5
+    - event_camera_videos: first 15
+
+# 4. Pick either model or event and one person. Train on all other videos (89 in total) and test on the chosen videos.
+- name: 64vids+15event+10model
+  data_aug:
+    - slice: True
+    - common: True
+  train:
+    - train: first 64
+    - model_videos: first 15
+    - event_camera_videos: first 10
+  epochs: 10
+  test:
+    - event_camera_videos: last 5
+
+
+- name: 50vids_no_aug
+  data_aug:
+    - slice: False
+    - common: False
+  train:
+    - train: first 50
+  epochs: 10
+  test:
+    - train: last 14
+
+# 1. train on the 64 dataset videos, and then test on the 15 event videos, extract accuracy, then test on the 15 model videos and extract accuracy. 
+
+- name: 64vids_no_aug
+  data_aug:
+    - slice: False
+    - common: False
+  train:
+    - train: first 64
+  epochs: 6
+  test:
+    - model_videos: first 15
+
+# 2. Train on 64 videos + 10 event videos (2 people all actions) and test on last person and all 15 model videos 
+- name: 64vids+10event_no_aug
+  data_aug:
+    - slice: False
+    - common: False
+  train:
+    - train: first 64
+    - event_camera_videos: first 10
+  epochs: 8
+  test:
+    - event_camera_videos: last 5
+    - model_videos: first 15
+
+3. Train on 64 videos + 10 model videos and test on last person and all 15 event videos. 
+- name: 64vids+10model_no_aug
+  data_aug:
+    - slice: False
+    - common: False
+  train:
+    - train: first 64
+    - model_videos: first 10
+  epochs: 9
+  test:
+    - model_videos: last 5
+    - event_camera_videos: first 15
+
+# 4. Pick either model or event and one person. Train on all other videos (89 in total) and test on the chosen videos.
+- name: 64vids+15event+10model_no_aug
+  data_aug:
+    - slice: False
+    - common: False
+  train:
+    - train: first 64
+    - model_videos: first 15
+    - event_camera_videos: first 10
+  epochs: 10
+  test:
+    - event_camera_videos: last 5
