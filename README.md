@@ -19,12 +19,12 @@ The model can be found in `Net.py`
 
 3 layers of convolutions + max pooling
 
-One LSTM layer with a 1200 node hidden layer
+One GRU layer with a 1200 node hidden layer
 
 2 fully connected layers with sigmoid activations
 
 ### 2.2 Reasoning
-CNNs are a common algorithm for deal with image classification. They are used here since we are dealing with a stream of images. The LSTM layer is necessary so the model can remember what has happened over previous frames. 
+CNNs are a common algorithm for deal with image classification. They are used here since we are dealing with a stream of images. The GRU layer is necessary so the model can remember what has happened over previous frames. 
 
 ## 3. Training
 ### 3.1 Setup
