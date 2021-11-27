@@ -1,6 +1,6 @@
 # Event_Video_Classification
 
-CNN+LSTM based event video classification with Pytorch.
+CNN+GRU based event video classification with Pytorch.
 
 ## 1. Data
 ### General
